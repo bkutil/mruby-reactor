@@ -24,6 +24,10 @@ module Reactor
     def run
       @demuxer.run
     end
+
+    def stop
+      @demuxer.stop
+    end
   end
 
   class Demuxer
@@ -58,11 +62,11 @@ module Reactor
     end
 
     def stop
-      @run = false
+      @run = nil
     end
 
     def run
-      @run = true
+      @run = :run
 
       loop do
         readable, writable = IO.select(@readers, @writers, nil, @io_timeout)
