@@ -28,13 +28,28 @@ A handler can be a Proc, or any object responding to a `#call` method. This meth
 
 ## Example
 
+A simple REPL. The handler waits for input on standard input (when the
+read would not block), then reads the line, evaluates, and prints
+back the result. On CTRL+D, it de-registers the itself and stops
+the reactor loop.
+
 ```
-read_handler = Proc.new do |reactor, handle, event|
-  puts "Input #{handle.readline}"
+repl = Proc.new do |reactor, handle, event|
+  begin
+    puts eval(handle.readline).inspect
+  rescue EOFError
+    puts "Bye."
+    reactor.deregister(handle, :read)
+    reactor.stop
+  rescue => e
+    puts "#{e.class}: #{e.message}"
+  end
+
+  print "> "
 end
 
 dispatcher = Reactor::Dispatcher.new
-dispatcher.register($stdin, :read, read_handler)
+dispatcher.register($stdin, :read, repl)
 dispatcher.run
 ```
 
